@@ -5,15 +5,20 @@ package main
 import (
 	"log"
 
+	"project20260702/internal/config"
 	"project20260702/internal/database"
 	"project20260702/internal/model"
 	"project20260702/internal/router"
 )
 
 func main() {
+	// 读取配置。
+	// 本地开发时主要来自 .env；部署到服务器后也可以来自系统环境变量。
+	cfg := config.Load()
+
 	// 连接 MySQL。
 	// 如果数据库连不上，后端继续运行也没有意义，所以这里直接退出。
-	db, err := database.OpenMySQL()
+	db, err := database.OpenMySQL(cfg.MySQL)
 	if err != nil {
 		log.Fatal("connect mysql failed: ", err)
 	}
@@ -31,7 +36,7 @@ func main() {
 
 	// 启动 HTTP 服务，监听 8080 端口。
 	// 启动后可以通过 http://127.0.0.1:8080 访问这个后端。
-	if err := r.Run(":8080"); err != nil {
+	if err := r.Run(cfg.HTTPAddr); err != nil {
 		log.Fatal("start server failed: ", err)
 	}
 }

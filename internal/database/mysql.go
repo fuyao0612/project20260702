@@ -3,6 +3,8 @@ package database
 import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+
+	"project20260702/internal/config"
 )
 
 // OpenMySQL 创建一个 MySQL 数据库连接。
@@ -13,10 +15,8 @@ import (
 //
 // parseTime=True 很重要，它让 MySQL 的 DATETIME 能正确转换成 Go 的 time.Time。
 // loc=Local 表示按本地时区解析时间。
-func OpenMySQL() (*gorm.DB, error) {
-	dsn := "root:060612cjh@tcp(127.0.0.1:3306)/project20260702?charset=utf8mb4&parseTime=True&loc=Local"
-
+func OpenMySQL(mysqlConfig config.MySQLConfig) (*gorm.DB, error) {
 	// gorm.Open 会建立一个数据库连接对象。
 	// 后面的查询、新增、修改、删除都会通过返回的 db 来操作数据库。
-	return gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	return gorm.Open(mysql.Open(mysqlConfig.DSN()), &gorm.Config{})
 }
