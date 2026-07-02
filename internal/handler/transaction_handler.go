@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 
+	"project20260702/internal/middleware"
 	"project20260702/internal/model"
 	"project20260702/internal/response"
 )
@@ -74,12 +75,18 @@ type createTransactionRequest struct {
 // 对应接口：
 // GET /api/transactions
 func (h *TransactionHandler) List(c *gin.Context) {
+	userID, ok := middleware.CurrentUserID(c)
+	if !ok {
+		response.Error(c, 401, 40101, "请先登录")
+		return
+	}
+
 	// transactions 是一个切片，可以理解成“多条账单记录的列表”。
 	var transactions []model.Transaction
 
 	// query 先从 transactions 表开始构造查询。
 	// 后面如果有筛选条件，就继续往 query 上追加 Where。
-	query := h.db.Model(&model.Transaction{})
+	query := h.db.Model(&model.Transaction{}).Where("user_id = ?", userID)
 
 	// month 是可选查询参数，格式是 YYYY-MM，例如 2026-07。
 	// 当前端请求 /api/transactions?month=2026-07 时，只返回 2026 年 7 月的账单。
@@ -118,6 +125,12 @@ func (h *TransactionHandler) List(c *gin.Context) {
 // 对应接口：
 // GET /api/transactions/:id
 func (h *TransactionHandler) Get(c *gin.Context) {
+	userID, ok := middleware.CurrentUserID(c)
+	if !ok {
+		response.Error(c, 401, 40101, "请先登录")
+		return
+	}
+
 	id, ok := getTransactionID(c)
 	if !ok {
 		return
@@ -127,7 +140,7 @@ func (h *TransactionHandler) Get(c *gin.Context) {
 
 	// First 会按主键查询单条记录。
 	// 如果 id 不存在，GORM 会返回 gorm.ErrRecordNotFound。
-	if err := h.db.First(&transaction, id).Error; err != nil {
+	if err := h.db.Where("user_id = ?", userID).First(&transaction, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			response.NotFound(c, "账单不存在")
 			return
@@ -145,6 +158,12 @@ func (h *TransactionHandler) Get(c *gin.Context) {
 // 对应接口：
 // POST /api/transactions
 func (h *TransactionHandler) Create(c *gin.Context) {
+	userID, ok := middleware.CurrentUserID(c)
+	if !ok {
+		response.Error(c, 401, 40101, "请先登录")
+		return
+	}
+
 	var req createTransactionRequest
 
 	// ShouldBindJSON 会把请求体里的 JSON 解析到 req 结构体中。
@@ -162,6 +181,7 @@ func (h *TransactionHandler) Create(c *gin.Context) {
 	}
 
 	transaction := model.Transaction{
+		UserID:     userID,
 		Type:       req.Type,
 		Amount:     req.Amount,
 		Category:   req.Category,
@@ -186,6 +206,12 @@ func (h *TransactionHandler) Create(c *gin.Context) {
 // 对应接口：
 // PUT /api/transactions/:id
 func (h *TransactionHandler) Update(c *gin.Context) {
+	userID, ok := middleware.CurrentUserID(c)
+	if !ok {
+		response.Error(c, 401, 40101, "请先登录")
+		return
+	}
+
 	id, ok := getTransactionID(c)
 	if !ok {
 		return
@@ -209,7 +235,7 @@ func (h *TransactionHandler) Update(c *gin.Context) {
 
 	// First 会按主键查询单条记录。
 	// 如果 id 不存在，GORM 会返回 gorm.ErrRecordNotFound。
-	if err := h.db.First(&transaction, id).Error; err != nil {
+	if err := h.db.Where("user_id = ?", userID).First(&transaction, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			response.NotFound(c, "账单不存在")
 			return
@@ -240,6 +266,12 @@ func (h *TransactionHandler) Update(c *gin.Context) {
 // 对应接口：
 // DELETE /api/transactions/:id
 func (h *TransactionHandler) Delete(c *gin.Context) {
+	userID, ok := middleware.CurrentUserID(c)
+	if !ok {
+		response.Error(c, 401, 40101, "请先登录")
+		return
+	}
+
 	id, ok := getTransactionID(c)
 	if !ok {
 		return
@@ -247,7 +279,7 @@ func (h *TransactionHandler) Delete(c *gin.Context) {
 
 	var transaction model.Transaction
 
-	if err := h.db.First(&transaction, id).Error; err != nil {
+	if err := h.db.Where("user_id = ?", userID).First(&transaction, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			response.NotFound(c, "账单不存在")
 			return

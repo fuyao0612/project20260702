@@ -13,9 +13,11 @@ import (
 // 1. HTTPAddr：Gin 服务监听地址，例如 :8080。
 // 2. MySQL：连接 MySQL 需要的主机、端口、库名、用户名、密码。
 type Config struct {
-	AppEnv   string
-	HTTPAddr string
-	MySQL    MySQLConfig
+	AppEnv    string
+	HTTPAddr  string
+	MySQL     MySQLConfig
+	JWTSecret string
+	WeChat    WeChatConfig
 }
 
 // MySQLConfig 保存 MySQL 连接配置。
@@ -27,6 +29,16 @@ type MySQLConfig struct {
 	Password string
 }
 
+// WeChatConfig 保存微信小程序登录需要用到的配置。
+type WeChatConfig struct {
+	AppID     string
+	AppSecret string
+
+	// DevOpenID 用于本地开发。
+	// 当没有配置真实 AppSecret 时，后端会用这个固定 openid 模拟微信登录。
+	DevOpenID string
+}
+
 // Load 读取项目配置。
 //
 // godotenv.Load() 会尝试读取项目根目录下的 .env 文件。
@@ -35,14 +47,20 @@ func Load() Config {
 	_ = godotenv.Load()
 
 	return Config{
-		AppEnv:   getEnv("APP_ENV", "local"),
-		HTTPAddr: getEnv("HTTP_ADDR", ":8080"),
+		AppEnv:    getEnv("APP_ENV", "local"),
+		HTTPAddr:  getEnv("HTTP_ADDR", ":8080"),
+		JWTSecret: getEnv("JWT_SECRET", "project20260702_local_jwt_secret"),
 		MySQL: MySQLConfig{
 			Host:     getEnv("MYSQL_HOST", "127.0.0.1"),
 			Port:     getEnv("MYSQL_PORT", "3306"),
 			Database: getEnv("MYSQL_DATABASE", "project20260702"),
 			Username: getEnv("MYSQL_USERNAME", "root"),
 			Password: getEnv("MYSQL_PASSWORD", ""),
+		},
+		WeChat: WeChatConfig{
+			AppID:     getEnv("WECHAT_APP_ID", "touristappid"),
+			AppSecret: getEnv("WECHAT_APP_SECRET", ""),
+			DevOpenID: getEnv("WECHAT_DEV_OPENID", "dev_openid_001"),
 		},
 	}
 }

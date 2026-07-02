@@ -4,16 +4,24 @@
 // 真机体验版不能访问你电脑的 localhost，后面部署到云服务器后要改成 HTTPS 域名。
 const API_BASE_URL = 'http://127.0.0.1:8080'
 
-// request 是对 wx.request 的简单封装。
-// 这样页面里不用反复写 url、method、success、fail 这些模板代码。
-function request(options) {
+// TOKEN_STORAGE_KEY 是 token 在微信本地缓存里的 key。
+const TOKEN_STORAGE_KEY = 'BOOKKEEPING_TOKEN'
+
+// rawRequest 是对 wx.request 的最底层封装。
+//
+// 它只负责发请求，不负责自动登录。
+// 这样 login() 自己调用登录接口时，不会递归触发自己。
+function rawRequest(options) {
   return new Promise((resolve, reject) => {
+    const token = wx.getStorageSync(TOKEN_STORAGE_KEY)
+
     wx.request({
       url: `${API_BASE_URL}${options.url}`,
       method: options.method || 'GET',
       data: options.data || {},
       header: {
-        'content-type': 'application/json'
+        'content-type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
       },
       success(res) {
         const body = res.data || {}
@@ -37,7 +45,76 @@ function request(options) {
   })
 }
 
+// login 调用微信登录，并把后端返回的 token 存到本地。
+//
+// wx.login() 会拿到一个临时 code。
+// 后端用这个 code 换 openid，再生成我们自己系统的 token。
+function login() {
+  return new Promise((resolve, reject) => {
+    wx.login({
+      success: async (res) => {
+        if (!res.code) {
+          reject({ message: '微信登录失败' })
+          return
+        }
+
+        try {
+          const data = await rawRequest({
+            url: '/api/auth/wechat-login',
+            method: 'POST',
+            data: {
+              code: res.code
+            }
+          })
+
+          wx.setStorageSync(TOKEN_STORAGE_KEY, data.token)
+          resolve(data)
+        } catch (err) {
+          reject(err)
+        }
+      },
+      fail(err) {
+        reject(err)
+      }
+    })
+  })
+}
+
+// ensureLogin 确保本地已有 token。
+//
+// 第一版只判断有没有 token。
+// 如果 token 过期，request 收到 401 后会清掉 token 并重新登录一次。
+async function ensureLogin() {
+  const token = wx.getStorageSync(TOKEN_STORAGE_KEY)
+  if (token) {
+    return
+  }
+
+  await login()
+}
+
+// request 是页面实际使用的请求函数。
+//
+// 它会先确保已登录，再请求业务接口。
+// 如果后端返回 401，说明 token 失效，会重新登录并重试一次。
+async function request(options) {
+  await ensureLogin()
+
+  try {
+    return await rawRequest(options)
+  } catch (err) {
+    if (err.code === 40101) {
+      wx.removeStorageSync(TOKEN_STORAGE_KEY)
+      await login()
+      return rawRequest(options)
+    }
+
+    throw err
+  }
+}
+
 module.exports = {
   API_BASE_URL,
+  login,
   request
 }

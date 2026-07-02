@@ -26,13 +26,13 @@ func main() {
 	// AutoMigrate 会根据 Go 结构体自动同步数据库表结构。
 	// 现在它会确保 MySQL 里存在 transactions 表。
 	// 项目早期用它很方便；后期上线后，我们会再学习更严谨的数据库迁移工具。
-	if err := db.AutoMigrate(&model.Transaction{}); err != nil {
+	if err := db.AutoMigrate(&model.User{}, &model.Transaction{}); err != nil {
 		log.Fatal("migrate database failed: ", err)
 	}
 
 	// 创建 Gin 路由，并把数据库连接传进去。
 	// 后面的接口处理函数就可以通过这个 db 查询或写入数据。
-	r := router.New(db)
+	r := router.New(db, cfg)
 
 	// 启动 HTTP 服务，监听 8080 端口。
 	// 启动后可以通过 http://127.0.0.1:8080 访问这个后端。

@@ -12,6 +12,10 @@ type Transaction struct {
 	// gorm:"primaryKey" 告诉 GORM 这个字段是数据库主键。
 	ID uint64 `json:"id" gorm:"primaryKey"`
 
+	// UserID 表示这条账单属于哪个用户。
+	// 加上这个字段后，每个微信用户只能看到自己的账本。
+	UserID uint64 `json:"user_id,omitempty" gorm:"index;not null;default:0"`
+
 	// Type 表示账单类型。
 	// 目前我们约定 expense 表示支出，income 表示收入。
 	Type string `json:"type"`

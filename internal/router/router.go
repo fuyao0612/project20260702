@@ -6,14 +6,16 @@ import (
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 
+	"project20260702/internal/config"
 	"project20260702/internal/handler"
+	"project20260702/internal/middleware"
 )
 
 // New 创建并配置 Gin 路由。
 //
 // 路由可以理解成“接口地址和处理函数的对应表”。
 // 例如 GET /api/transactions 会交给 TransactionHandler.List 处理。
-func New(db *gorm.DB) *gin.Engine {
+func New(db *gorm.DB, cfg config.Config) *gin.Engine {
 	// gin.Default() 创建一个 Gin 路由引擎。
 	// 它默认带有日志和异常恢复中间件，适合新手和项目早期使用。
 	r := gin.Default()
@@ -28,29 +30,38 @@ func New(db *gorm.DB) *gin.Engine {
 		})
 	})
 
+	authHandler := handler.NewAuthHandler(db, cfg.JWTSecret, cfg.WeChat)
 	transactionHandler := handler.NewTransactionHandler(db)
 	statisticsHandler := handler.NewStatisticsHandler(db)
 
 	// /api 这一组路由是给小程序或前端调用的业务接口。
 	api := r.Group("/api")
 	{
+		// 微信小程序登录接口。
+		// 登录接口本身不能要求 token，因为用户正是通过它获取 token。
+		api.POST("/auth/wechat-login", authHandler.WeChatLogin)
+
+		// protected 是需要登录后才能访问的接口组。
+		protected := api.Group("")
+		protected.Use(middleware.Auth(cfg.JWTSecret))
+
 		// 查询账单列表。
-		api.GET("/transactions", transactionHandler.List)
+		protected.GET("/transactions", transactionHandler.List)
 
 		// 新增一条账单。
-		api.POST("/transactions", transactionHandler.Create)
+		protected.POST("/transactions", transactionHandler.Create)
 
 		// 查询一条账单详情。:id 表示这里是动态参数，例如 /transactions/1。
-		api.GET("/transactions/:id", transactionHandler.Get)
+		protected.GET("/transactions/:id", transactionHandler.Get)
 
 		// 修改一条账单。:id 表示这里是动态参数，例如 /transactions/2。
-		api.PUT("/transactions/:id", transactionHandler.Update)
+		protected.PUT("/transactions/:id", transactionHandler.Update)
 
 		// 删除一条账单。
-		api.DELETE("/transactions/:id", transactionHandler.Delete)
+		protected.DELETE("/transactions/:id", transactionHandler.Delete)
 
 		// 查询月度统计数据。
-		api.GET("/statistics/monthly", statisticsHandler.Monthly)
+		protected.GET("/statistics/monthly", statisticsHandler.Monthly)
 	}
 
 	return r

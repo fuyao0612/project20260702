@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 
+	"project20260702/internal/middleware"
 	"project20260702/internal/model"
 	"project20260702/internal/response"
 )
@@ -64,6 +65,12 @@ func parseMonthQuery(c *gin.Context) (month string, monthStart time.Time, nextMo
 // 对应接口：
 // GET /api/statistics/monthly?month=2026-07
 func (h *StatisticsHandler) Monthly(c *gin.Context) {
+	userID, ok := middleware.CurrentUserID(c)
+	if !ok {
+		response.Error(c, 401, 40101, "请先登录")
+		return
+	}
+
 	month, monthStart, nextMonthStart, ok := parseMonthQuery(c)
 	if !ok {
 		return
@@ -75,7 +82,7 @@ func (h *StatisticsHandler) Monthly(c *gin.Context) {
 	// SELECT type, SUM(amount) FROM transactions WHERE ... GROUP BY type
 	if err := h.db.Model(&model.Transaction{}).
 		Select("type, COALESCE(SUM(amount), 0) AS amount").
-		Where("happened_at >= ? AND happened_at < ?", monthStart, nextMonthStart).
+		Where("user_id = ? AND happened_at >= ? AND happened_at < ?", userID, monthStart, nextMonthStart).
 		Group("type").
 		Scan(&typeSummaries).Error; err != nil {
 		response.InternalError(c, err.Error())
@@ -100,7 +107,7 @@ func (h *StatisticsHandler) Monthly(c *gin.Context) {
 	// 记账软件里，分类饼图通常看的是“钱花在哪里”。
 	if err := h.db.Model(&model.Transaction{}).
 		Select("category, COALESCE(SUM(amount), 0) AS amount").
-		Where("type = ? AND happened_at >= ? AND happened_at < ?", "expense", monthStart, nextMonthStart).
+		Where("user_id = ? AND type = ? AND happened_at >= ? AND happened_at < ?", userID, "expense", monthStart, nextMonthStart).
 		Group("category").
 		Order("amount desc").
 		Scan(&categorySummaries).Error; err != nil {
