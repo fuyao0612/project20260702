@@ -16,12 +16,19 @@ function request(options) {
         'content-type': 'application/json'
       },
       success(res) {
-        if (res.statusCode >= 200 && res.statusCode < 300) {
-          resolve(res.data)
+        const body = res.data || {}
+
+        // 后端现在统一返回 { code, message, data }。
+        // code === 0 表示业务成功，此时把真正业务数据 body.data 交给页面。
+        if (res.statusCode >= 200 && res.statusCode < 300 && body.code === 0) {
+          resolve(body.data)
           return
         }
 
-        reject(res.data || { error: '请求失败' })
+        reject({
+          message: body.message || '请求失败',
+          code: body.code
+        })
       },
       fail(err) {
         reject(err)

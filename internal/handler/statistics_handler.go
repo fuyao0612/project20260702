@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"net/http"
 	"strings"
 	"time"
 
@@ -9,6 +8,7 @@ import (
 	"gorm.io/gorm"
 
 	"project20260702/internal/model"
+	"project20260702/internal/response"
 )
 
 // StatisticsHandler 保存统计接口需要用到的依赖。
@@ -46,17 +46,13 @@ type monthlyTypeSummary struct {
 func parseMonthQuery(c *gin.Context) (month string, monthStart time.Time, nextMonthStart time.Time, ok bool) {
 	month = strings.TrimSpace(c.Query("month"))
 	if month == "" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "month 是必填参数，格式类似 2026-07",
-		})
+		response.BadRequest(c, "month 是必填参数，格式类似 2026-07")
 		return "", time.Time{}, time.Time{}, false
 	}
 
 	parsedMonth, err := time.ParseInLocation("2006-01", month, time.Local)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "month 格式不正确，正确格式类似 2026-07",
-		})
+		response.BadRequest(c, "month 格式不正确，正确格式类似 2026-07")
 		return "", time.Time{}, time.Time{}, false
 	}
 
@@ -82,9 +78,7 @@ func (h *StatisticsHandler) Monthly(c *gin.Context) {
 		Where("happened_at >= ? AND happened_at < ?", monthStart, nextMonthStart).
 		Group("type").
 		Scan(&typeSummaries).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
+		response.InternalError(c, err.Error())
 		return
 	}
 
@@ -110,19 +104,15 @@ func (h *StatisticsHandler) Monthly(c *gin.Context) {
 		Group("category").
 		Order("amount desc").
 		Scan(&categorySummaries).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
+		response.InternalError(c, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"data": gin.H{
-			"month":               month,
-			"income_total":        incomeTotal,
-			"expense_total":       expenseTotal,
-			"balance":             incomeTotal - expenseTotal,
-			"expense_by_category": categorySummaries,
-		},
+	response.Success(c, gin.H{
+		"month":               month,
+		"income_total":        incomeTotal,
+		"expense_total":       expenseTotal,
+		"balance":             incomeTotal - expenseTotal,
+		"expense_by_category": categorySummaries,
 	})
 }

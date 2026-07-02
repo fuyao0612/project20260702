@@ -72,13 +72,13 @@ Page({
         request({ url: `/api/statistics/monthly?month=${month}` })
       ])
 
-      const transactions = (listResult.data || []).map((item) => ({
+      const transactions = (listResult || []).map((item) => ({
         ...item,
         amountText: formatAmount(item.amount),
         dateText: formatDate(item.happened_at)
       }))
 
-      const statistics = statisticsResult.data || {}
+      const statistics = statisticsResult || {}
 
       // setData 会更新页面状态，并触发 WXML 重新渲染。
       this.setData({
@@ -90,7 +90,7 @@ Page({
       // wx.showToast 是微信小程序常用的轻提示。
       // icon: 'none' 表示只显示文字，不显示成功/失败图标。
       wx.showToast({
-        title: err.error || '加载失败',
+        title: err.message || '加载失败',
         icon: 'none'
       })
     } finally {

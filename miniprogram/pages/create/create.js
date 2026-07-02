@@ -119,7 +119,7 @@ Page({
       }, 500)
     } catch (err) {
       wx.showToast({
-        title: err.error || '保存失败',
+        title: err.message || '保存失败',
         icon: 'none'
       })
     } finally {
