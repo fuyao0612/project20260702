@@ -1,0 +1,13 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/create/create"
+  ],
+  "window": {
+    "navigationBarTitleText": "记账本",
+    "navigationBarBackgroundColor": "#1f6f5b",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#f5f7f6"
+  },
+  "style": "v2"
+}

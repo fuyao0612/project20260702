@@ -1,0 +1,58 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+.field {
+  padding: 24rpx;
+  border-radius: 8rpx;
+  background: #ffffff;
+}
+
+.label {
+  margin-bottom: 16rpx;
+  color: #6b7280;
+  font-size: 24rpx;
+}
+
+.segmented {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12rpx;
+}
+
+.segment {
+  height: 72rpx;
+  line-height: 72rpx;
+  border-radius: 8rpx;
+  background: #eef2f1;
+  color: #374151;
+  text-align: center;
+  font-size: 28rpx;
+}
+
+.segment.active {
+  background: #1f6f5b;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.input,
+.picker {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 76rpx;
+  padding: 0 20rpx;
+  border-radius: 8rpx;
+  background: #f5f7f6;
+  font-size: 30rpx;
+}
+
+.picker {
+  line-height: 76rpx;
+}
+
+.submit-button {
+  margin-top: 8rpx;
+}

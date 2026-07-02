@@ -1,0 +1,107 @@
+.summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding: 32rpx;
+  border-radius: 8rpx;
+  background: #ffffff;
+  box-shadow: 0 8rpx 24rpx rgba(31, 41, 51, 0.06);
+}
+
+.summary-label {
+  margin-bottom: 12rpx;
+  color: #6b7280;
+  font-size: 24rpx;
+}
+
+.summary-amount {
+  color: #1f2933;
+  font-size: 52rpx;
+  font-weight: 700;
+}
+
+.summary-side {
+  text-align: right;
+}
+
+.summary-income {
+  color: #1f6f5b;
+  font-size: 32rpx;
+  font-weight: 600;
+}
+
+.add-button {
+  margin-top: 24rpx;
+}
+
+.section-title {
+  margin: 36rpx 0 16rpx;
+  font-size: 30rpx;
+  font-weight: 700;
+}
+
+.state-text {
+  padding: 56rpx 0;
+  color: #6b7280;
+  text-align: center;
+  font-size: 28rpx;
+}
+
+.transaction-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.transaction-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 24rpx;
+  box-sizing: border-box;
+  padding: 24rpx;
+  border-radius: 8rpx;
+  background: #ffffff;
+}
+
+.transaction-main {
+  min-width: 0;
+  flex: 1;
+}
+
+.transaction-category {
+  font-size: 30rpx;
+  font-weight: 600;
+}
+
+.transaction-note {
+  margin-top: 8rpx;
+  color: #6b7280;
+  font-size: 24rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.transaction-side {
+  min-width: 160rpx;
+  text-align: right;
+}
+
+.transaction-amount {
+  font-size: 30rpx;
+  font-weight: 700;
+}
+
+.transaction-amount.expense {
+  color: #d14343;
+}
+
+.transaction-amount.income {
+  color: #1f6f5b;
+}
+
+.transaction-time {
+  margin-top: 8rpx;
+  color: #6b7280;
+  font-size: 22rpx;
+}

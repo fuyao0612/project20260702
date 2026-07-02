@@ -1,0 +1,29 @@
+# Go build output
+*.exe
+*.test
+/bin/
+/dist/
+
+# Go workspace
+go.work
+go.work.sum
+
+# Logs
+*.log
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+
+# Environment files
+.env
+.env.*
+
+# Temporary files
+*.tmp
+*.bak
+
+# 微信开发者工具本地缓存
+miniprogram/.idea/
+miniprogram/.settings/

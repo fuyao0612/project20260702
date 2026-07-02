@@ -1,0 +1,24 @@
+page {
+  background: #f5f7f6;
+  color: #1f2933;
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+}
+
+.page {
+  min-height: 100vh;
+  box-sizing: border-box;
+  padding: 24rpx;
+}
+
+.primary-button {
+  height: 88rpx;
+  line-height: 88rpx;
+  border-radius: 8rpx;
+  background: #1f6f5b;
+  color: #ffffff;
+  font-size: 30rpx;
+}
+
+.muted {
+  color: #6b7280;
+}

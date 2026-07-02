@@ -1,0 +1,42 @@
+services:
+  # mysql 是服务名，Docker Compose 会根据这个服务启动一个 MySQL 容器。
+  mysql:
+    # image 表示使用哪个镜像。
+    # mysql:8.4 是 Docker Hub 上的官方 MySQL 8.4 镜像。
+    image: mysql:8.4
+
+    # container_name 是容器名字。
+    # 以后查看日志、进入容器时会用到它，例如 docker logs project20260702-mysql。
+    container_name: project20260702-mysql
+
+    # unless-stopped 表示 Docker 启动时自动拉起这个容器，除非你手动停止它。
+    restart: unless-stopped
+
+    # environment 是传给 MySQL 镜像的环境变量。
+    # 第一次初始化数据卷时，MySQL 会根据这些变量设置 root 密码并创建数据库。
+    environment:
+      MYSQL_ROOT_PASSWORD: 060612cjh
+      MYSQL_DATABASE: project20260702
+      TZ: Asia/Shanghai
+
+    # ports 表示端口映射。
+    # "3306:3306" 的意思是：电脑本机 3306 端口 -> 容器内部 3306 端口。
+    # 所以 DBeaver 和 Go 后端可以连接 127.0.0.1:3306。
+    ports:
+      - "3306:3306"
+
+    # volumes 表示数据持久化。
+    # MySQL 真正的数据会保存在 project20260702-mysql-data 这个 Docker 数据卷里。
+    # 这样容器重启后，数据库数据不会丢。
+    volumes:
+      - project20260702-mysql-data:/var/lib/mysql
+
+    # command 用来追加 MySQL 启动参数。
+    # 这里设置 utf8mb4 字符集，保证中文、emoji 等字符能正常保存。
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_0900_ai_ci
+
+volumes:
+  # 声明上面使用的数据卷。
+  project20260702-mysql-data:
