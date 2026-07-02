@@ -18,7 +18,7 @@
   <view wx:elif="{{transactions.length === 0}}" class="state-text">暂无账单</view>
 
   <view wx:else class="transaction-list">
-    <view wx:for="{{transactions}}" wx:key="id" class="transaction-item">
+    <view wx:for="{{transactions}}" wx:key="id" class="transaction-item" data-id="{{item.id}}" bindtap="goDetail">
       <view class="transaction-main">
         <view class="transaction-category">{{item.category}}</view>
         <view class="transaction-note">{{item.note || '无备注'}}</view>

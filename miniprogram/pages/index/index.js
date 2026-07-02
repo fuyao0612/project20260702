@@ -58,6 +58,16 @@ Page({
     })
   },
 
+  // 跳转到账单详情页。
+  // 首页列表项上通过 data-id 保存账单 id，这里从 event.currentTarget.dataset 取出来。
+  goDetail(event) {
+    const id = event.currentTarget.dataset.id
+
+    wx.navigateTo({
+      url: `/pages/detail/detail?id=${id}`
+    })
+  },
+
   // loadPageData 负责加载首页所需的全部数据。
   // 当前包括：本月账单列表、本月统计。
   async loadPageData() {

@@ -1,7 +1,8 @@
 {
   "pages": [
     "pages/index/index",
-    "pages/create/create"
+    "pages/create/create",
+    "pages/detail/detail"
   ],
   "window": {
     "navigationBarTitleText": "记账本",
