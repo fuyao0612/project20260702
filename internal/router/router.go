@@ -6,7 +6,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 
-	"project20260702/internal/ai"
 	"project20260702/internal/config"
 	"project20260702/internal/handler"
 	"project20260702/internal/middleware"
@@ -31,8 +30,7 @@ func New(db *gorm.DB, cfg config.Config) *gin.Engine {
 		})
 	})
 
-	aiClient := ai.NewClient(cfg.AI)
-	aiHandler := handler.NewAIHandler(db, aiClient)
+	aiHandler := handler.NewAIHandler(db, cfg.AI)
 	authHandler := handler.NewAuthHandler(db, cfg.JWTSecret, cfg.WeChat)
 	categoryHandler := handler.NewCategoryHandler(db)
 	transactionHandler := handler.NewTransactionHandler(db)
@@ -72,6 +70,11 @@ func New(db *gorm.DB, cfg config.Config) *gin.Engine {
 
 		// 根据自然语言生成账单草稿。
 		protected.POST("/ai/transaction-draft", aiHandler.TransactionDraft)
+
+		// 查询、保存、测试当前用户的 AI API 配置。
+		protected.GET("/ai/settings", aiHandler.GetSetting)
+		protected.PUT("/ai/settings", aiHandler.SaveSetting)
+		protected.POST("/ai/settings/test", aiHandler.TestSetting)
 	}
 
 	return r

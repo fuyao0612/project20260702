@@ -4,6 +4,16 @@
   background: #ffffff;
 }
 
+.settings-button {
+  margin-bottom: 24rpx;
+  height: 80rpx;
+  line-height: 80rpx;
+  border-radius: 8rpx;
+  background: #ffffff;
+  color: #1f6f5b;
+  font-size: 28rpx;
+}
+
 .label {
   margin-bottom: 16rpx;
   color: #6b7280;

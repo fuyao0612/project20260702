@@ -1,4 +1,6 @@
 <view class="page">
+  <button class="settings-button" bindtap="goAISettings">AI 配置</button>
+
   <view class="field">
     <view class="label">一句话记账</view>
     <textarea class="textarea" placeholder="例如：今天午饭花了18元" value="{{text}}" bindinput="onTextInput" />

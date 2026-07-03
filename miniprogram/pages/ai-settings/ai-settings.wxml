@@ -1,0 +1,37 @@
+<view class="page">
+  <view class="notice">
+    API Key 会保存到后端，不会保存在小程序本地。测试通过后再保存更稳。
+  </view>
+
+  <view class="form">
+    <view class="field">
+      <view class="label">Base URL</view>
+      <input class="input" placeholder="例如 https://api.deepseek.com" value="{{form.base_url}}" bindinput="onBaseURLInput" />
+    </view>
+
+    <view class="field">
+      <view class="label">接口协议</view>
+      <picker mode="selector" range="{{protocolNames}}" value="{{protocolIndex}}" bindchange="onProtocolChange">
+        <view class="input">{{protocolNames[protocolIndex]}}</view>
+      </picker>
+    </view>
+
+    <view class="field">
+      <view class="label">端点</view>
+      <input class="input" placeholder="/chat/completions" value="{{form.endpoint}}" bindinput="onEndpointInput" />
+    </view>
+
+    <view class="field">
+      <view class="label">模型</view>
+      <input class="input" placeholder="例如 deepseek-v4-flash" value="{{form.model}}" bindinput="onModelInput" />
+    </view>
+
+    <view class="field">
+      <view class="label">API Key</view>
+      <input class="input" password placeholder="{{apiKeyPlaceholder}}" value="{{form.api_key}}" bindinput="onAPIKeyInput" />
+    </view>
+
+    <button class="test-button" loading="{{testing}}" bindtap="testSetting">测试配置</button>
+    <button class="primary-button save-button" loading="{{saving}}" bindtap="saveSetting">保存配置</button>
+  </view>
+</view>

@@ -47,9 +47,11 @@ type WeChatConfig struct {
 // AI_MODEL 是模型名
 // AI_API_KEY 是密钥，不能提交到 Git
 type AIConfig struct {
-	BaseURL string
-	APIKey  string
-	Model   string
+	BaseURL  string
+	APIKey   string
+	Model    string
+	Protocol string
+	Endpoint string
 }
 
 // Load 读取项目配置。
@@ -76,9 +78,11 @@ func Load() Config {
 			DevOpenID: getEnv("WECHAT_DEV_OPENID", "dev_openid_001"),
 		},
 		AI: AIConfig{
-			BaseURL: getEnv("AI_BASE_URL", "https://api.openai.com/v1"),
-			APIKey:  getEnv("AI_API_KEY", ""),
-			Model:   getEnv("AI_MODEL", "gpt-4o-mini"),
+			BaseURL:  getEnv("AI_BASE_URL", "https://api.openai.com/v1"),
+			APIKey:   getEnv("AI_API_KEY", ""),
+			Model:    getEnv("AI_MODEL", "gpt-4o-mini"),
+			Protocol: getEnv("AI_PROTOCOL", "chat_completions"),
+			Endpoint: getEnv("AI_ENDPOINT", "/chat/completions"),
 		},
 	}
 }

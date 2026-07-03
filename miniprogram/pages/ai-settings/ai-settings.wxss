@@ -1,0 +1,50 @@
+.notice {
+  padding: 24rpx;
+  border-radius: 8rpx;
+  background: #eef7f4;
+  color: #1f6f5b;
+  font-size: 26rpx;
+  line-height: 1.6;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+  margin-top: 24rpx;
+}
+
+.field {
+  padding: 24rpx;
+  border-radius: 8rpx;
+  background: #ffffff;
+}
+
+.label {
+  margin-bottom: 16rpx;
+  color: #6b7280;
+  font-size: 24rpx;
+}
+
+.input {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 76rpx;
+  padding: 0 20rpx;
+  border-radius: 8rpx;
+  background: #f5f7f6;
+  font-size: 28rpx;
+}
+
+.test-button {
+  height: 88rpx;
+  line-height: 88rpx;
+  border-radius: 8rpx;
+  background: #ffffff;
+  color: #1f6f5b;
+  font-size: 30rpx;
+}
+
+.save-button {
+  margin-top: 0;
+}

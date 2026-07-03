@@ -51,6 +51,12 @@ Page({
     })
   },
 
+  goAISettings() {
+    wx.navigateTo({
+      url: '/pages/ai-settings/ai-settings'
+    })
+  },
+
   async loadCategories(type, selectedCategoryName = '') {
     const categories = await request({
       url: `/api/categories?type=${type}`

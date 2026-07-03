@@ -4,7 +4,8 @@
     "pages/create/create",
     "pages/detail/detail",
     "pages/statistics/statistics",
-    "pages/ai-create/ai-create"
+    "pages/ai-create/ai-create",
+    "pages/ai-settings/ai-settings"
   ],
   "window": {
     "navigationBarTitleText": "记账本",

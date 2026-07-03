@@ -28,3 +28,4 @@ Thumbs.db
 # 微信开发者工具本地缓存
 miniprogram/.idea/
 miniprogram/.settings/
+miniprogram/.cloudbase/
