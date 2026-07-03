@@ -3,7 +3,8 @@
     "pages/index/index",
     "pages/create/create",
     "pages/detail/detail",
-    "pages/statistics/statistics"
+    "pages/statistics/statistics",
+    "pages/ai-create/ai-create"
   ],
   "window": {
     "navigationBarTitleText": "记账本",

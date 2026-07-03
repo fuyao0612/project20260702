@@ -58,6 +58,13 @@ Page({
     })
   },
 
+  // 跳转到 AI 记账页面。
+  goAICreate() {
+    wx.navigateTo({
+      url: '/pages/ai-create/ai-create'
+    })
+  },
+
   // 跳转到统计页。
   goStatistics() {
     wx.navigateTo({

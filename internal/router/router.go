@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 
+	"project20260702/internal/ai"
 	"project20260702/internal/config"
 	"project20260702/internal/handler"
 	"project20260702/internal/middleware"
@@ -30,6 +31,8 @@ func New(db *gorm.DB, cfg config.Config) *gin.Engine {
 		})
 	})
 
+	aiClient := ai.NewClient(cfg.AI)
+	aiHandler := handler.NewAIHandler(db, aiClient)
 	authHandler := handler.NewAuthHandler(db, cfg.JWTSecret, cfg.WeChat)
 	categoryHandler := handler.NewCategoryHandler(db)
 	transactionHandler := handler.NewTransactionHandler(db)
@@ -66,6 +69,9 @@ func New(db *gorm.DB, cfg config.Config) *gin.Engine {
 
 		// 查询月度统计数据。
 		protected.GET("/statistics/monthly", statisticsHandler.Monthly)
+
+		// 根据自然语言生成账单草稿。
+		protected.POST("/ai/transaction-draft", aiHandler.TransactionDraft)
 	}
 
 	return r

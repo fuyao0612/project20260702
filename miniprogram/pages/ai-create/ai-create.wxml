@@ -1,7 +1,14 @@
 <view class="page">
-  <view wx:if="{{loading}}" class="state-text">加载中...</view>
+  <view class="field">
+    <view class="label">一句话记账</view>
+    <textarea class="textarea" placeholder="例如：今天午饭花了18元" value="{{text}}" bindinput="onTextInput" />
+  </view>
 
-  <view wx:else class="form">
+  <button class="primary-button submit-button" loading="{{generating}}" bindtap="generateDraft">生成草稿</button>
+
+  <view wx:if="{{draftReady}}" class="draft">
+    <view class="section-title">AI 草稿</view>
+
     <view class="field">
       <view class="label">类型</view>
       <view class="segmented">
@@ -12,7 +19,7 @@
 
     <view class="field">
       <view class="label">金额</view>
-      <input class="input" type="digit" placeholder="例如 19.5" value="{{form.amountYuan}}" bindinput="onAmountInput" />
+      <input class="input" type="digit" value="{{form.amountYuan}}" bindinput="onAmountInput" />
     </view>
 
     <view class="field">
@@ -24,7 +31,7 @@
 
     <view class="field">
       <view class="label">备注</view>
-      <input class="input" placeholder="可不填" value="{{form.note}}" bindinput="onNoteInput" />
+      <input class="input" value="{{form.note}}" bindinput="onNoteInput" />
     </view>
 
     <view class="field">
@@ -41,7 +48,6 @@
       </picker>
     </view>
 
-    <button class="primary-button submit-button" loading="{{submitting}}" bindtap="submit">保存修改</button>
-    <button class="delete-button" loading="{{deleting}}" bindtap="confirmDelete">删除账单</button>
+    <button class="primary-button submit-button" loading="{{saving}}" bindtap="saveDraft">确认保存</button>
   </view>
 </view>

@@ -9,6 +9,21 @@ function getToday() {
   return `${date.getFullYear()}-${month}-${day}`
 }
 
+// getCurrentTime 返回当前时间，格式是 HH:mm。
+// 新增账单默认使用当前分钟，而不是固定中午 12 点。
+function getCurrentTime() {
+  const date = new Date()
+  const hour = `${date.getHours()}`.padStart(2, '0')
+  const minute = `${date.getMinutes()}`.padStart(2, '0')
+  return `${hour}:${minute}`
+}
+
+// buildHappenedAt 把日期和时间拼成后端需要的 RFC3339 字符串。
+// 例如 2026-07-03 + 19:25 -> 2026-07-03T19:25:00+08:00。
+function buildHappenedAt(date, time) {
+  return `${date}T${time}:00+08:00`
+}
+
 // yuanToCent 把页面输入的元转换成后端需要的分。
 // 使用 Math.round 是为了支持 18.5 这种输入，得到 1850 分。
 function yuanToCent(value) {
@@ -29,7 +44,8 @@ Page({
       amountYuan: '',
       category: '',
       note: '',
-      date: getToday()
+      date: getToday(),
+      time: getCurrentTime()
     }
   },
 
@@ -105,6 +121,13 @@ Page({
     })
   },
 
+  // 时间选择器变化时，把选择结果同步到 form.time。
+  onTimeChange(event) {
+    this.setData({
+      'form.time': event.detail.value
+    })
+  },
+
   // submit 负责校验表单并调用后端新增账单接口。
   async submit() {
     const { form } = this.data
@@ -141,9 +164,7 @@ Page({
           amount,
           category: form.category.trim(),
           note: form.note.trim(),
-          // 当前页面只选择日期，没有选择具体时间。
-          // 所以先固定为当天 12:00:00，后面可以升级成日期+时间选择。
-          happened_at: `${form.date}T12:00:00+08:00`
+          happened_at: buildHappenedAt(form.date, form.time)
         }
       })
 

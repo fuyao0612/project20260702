@@ -32,6 +32,13 @@
       </picker>
     </view>
 
+    <view class="field">
+      <view class="label">时间</view>
+      <picker mode="time" value="{{form.time}}" bindchange="onTimeChange">
+        <view class="picker">{{form.time}}</view>
+      </picker>
+    </view>
+
     <button class="primary-button submit-button" loading="{{submitting}}" bindtap="submit">保存</button>
   </view>
 </view>

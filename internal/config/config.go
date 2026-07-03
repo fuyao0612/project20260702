@@ -18,6 +18,7 @@ type Config struct {
 	MySQL     MySQLConfig
 	JWTSecret string
 	WeChat    WeChatConfig
+	AI        AIConfig
 }
 
 // MySQLConfig 保存 MySQL 连接配置。
@@ -37,6 +38,18 @@ type WeChatConfig struct {
 	// DevOpenID 用于本地开发。
 	// 当没有配置真实 AppSecret 时，后端会用这个固定 openid 模拟微信登录。
 	DevOpenID string
+}
+
+// AIConfig 保存 AI API 调用配置。
+//
+// 这里按 OpenAI 兼容接口设计：
+// AI_BASE_URL 通常类似 https://api.openai.com/v1
+// AI_MODEL 是模型名
+// AI_API_KEY 是密钥，不能提交到 Git
+type AIConfig struct {
+	BaseURL string
+	APIKey  string
+	Model   string
 }
 
 // Load 读取项目配置。
@@ -61,6 +74,11 @@ func Load() Config {
 			AppID:     getEnv("WECHAT_APP_ID", "touristappid"),
 			AppSecret: getEnv("WECHAT_APP_SECRET", ""),
 			DevOpenID: getEnv("WECHAT_DEV_OPENID", "dev_openid_001"),
+		},
+		AI: AIConfig{
+			BaseURL: getEnv("AI_BASE_URL", "https://api.openai.com/v1"),
+			APIKey:  getEnv("AI_API_KEY", ""),
+			Model:   getEnv("AI_MODEL", "gpt-4o-mini"),
 		},
 	}
 }
