@@ -34,6 +34,17 @@
   margin-top: 24rpx;
 }
 
+.image-button {
+  margin-top: 16rpx;
+  height: 88rpx;
+  line-height: 88rpx;
+  border-radius: 8rpx;
+  background: #ffffff;
+  color: #1f6f5b;
+  font-size: 30rpx;
+  font-weight: 600;
+}
+
 .draft {
   margin-top: 36rpx;
 }

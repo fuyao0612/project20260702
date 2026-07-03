@@ -1,7 +1,12 @@
 package handler
 
 import (
+	"encoding/base64"
 	"errors"
+	"fmt"
+	"os"
+	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -32,6 +37,12 @@ func NewAIHandler(db *gorm.DB, fallback config.AIConfig) *AIHandler {
 // transactionDraftRequest 是文本记账草稿接口的请求参数。
 type transactionDraftRequest struct {
 	Text string `json:"text" binding:"required"`
+}
+
+// imageTransactionDraftRequest 是图片识别记账草稿接口的请求参数。
+type imageTransactionDraftRequest struct {
+	ImagePath string `json:"image_path" binding:"required"`
+	Text      string `json:"text"`
 }
 
 // aiSettingRequest 是保存/测试 AI 配置时的请求参数。
@@ -246,6 +257,68 @@ func (h *AIHandler) TransactionDraft(c *gin.Context) {
 	response.Success(c, draft)
 }
 
+// ImageTransactionDraft 根据上传图片生成账单草稿。
+//
+// 对应接口：
+// POST /api/ai/image-transaction-draft
+func (h *AIHandler) ImageTransactionDraft(c *gin.Context) {
+	userID, ok := middleware.CurrentUserID(c)
+	if !ok {
+		response.Error(c, 401, 40101, "请先登录")
+		return
+	}
+
+	var req imageTransactionDraftRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.BadRequest(c, "image_path 是必填参数")
+		return
+	}
+
+	imagePath, mimeType, err := safeUploadedImagePath(userID, req.ImagePath)
+	if err != nil {
+		response.BadRequest(c, err.Error())
+		return
+	}
+
+	imageBytes, err := os.ReadFile(imagePath)
+	if err != nil {
+		response.InternalError(c, err.Error())
+		return
+	}
+
+	expenseCategories, err := h.categoryNames("expense")
+	if err != nil {
+		response.InternalError(c, err.Error())
+		return
+	}
+
+	incomeCategories, err := h.categoryNames("income")
+	if err != nil {
+		response.InternalError(c, err.Error())
+		return
+	}
+
+	runtimeConfig, err := h.runtimeConfigForUser(userID)
+	if err != nil {
+		response.InternalError(c, err.Error())
+		return
+	}
+
+	imageDataURL := fmt.Sprintf("data:%s;base64,%s", mimeType, base64.StdEncoding.EncodeToString(imageBytes))
+	draft, err := ai.NewClientWithConfig(runtimeConfig).GenerateTransactionDraftFromImage(imageDataURL, req.Text, time.Now(), expenseCategories, incomeCategories)
+	if err != nil {
+		response.InternalError(c, err.Error())
+		return
+	}
+
+	if err := validateDraft(draft, expenseCategories, incomeCategories); err != nil {
+		response.BadRequest(c, err.Error())
+		return
+	}
+
+	response.Success(c, draft)
+}
+
 func (h *AIHandler) runtimeConfigForUser(userID uint64) (ai.RuntimeConfig, error) {
 	setting, err := h.findSetting(userID)
 	if err != nil {
@@ -381,6 +454,37 @@ func validateDraft(draft ai.TransactionDraft, expenseCategories []string, income
 	}
 
 	return errString("AI 返回的分类不在可选分类中")
+}
+
+func safeUploadedImagePath(userID uint64, rawPath string) (string, string, error) {
+	cleanPath := filepath.Clean(filepath.FromSlash(strings.TrimSpace(rawPath)))
+	userDir := filepath.Join(uploadImageRoot, strconv.FormatUint(userID, 10))
+
+	absUserDir, err := filepath.Abs(userDir)
+	if err != nil {
+		return "", "", err
+	}
+
+	absImagePath, err := filepath.Abs(cleanPath)
+	if err != nil {
+		return "", "", err
+	}
+
+	// 只允许读取当前登录用户自己目录下的图片，避免用户传入 ../ 读取任意文件。
+	if absImagePath != absUserDir && !strings.HasPrefix(absImagePath, absUserDir+string(os.PathSeparator)) {
+		return "", "", errString("图片路径不合法")
+	}
+
+	switch strings.ToLower(filepath.Ext(absImagePath)) {
+	case ".jpg", ".jpeg":
+		return absImagePath, "image/jpeg", nil
+	case ".png":
+		return absImagePath, "image/png", nil
+	case ".webp":
+		return absImagePath, "image/webp", nil
+	default:
+		return "", "", errString("只支持 jpg、png、webp 图片")
+	}
 }
 
 type errString string

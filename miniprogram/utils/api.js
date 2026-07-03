@@ -113,8 +113,62 @@ async function request(options) {
   }
 }
 
+// getToken 读取当前保存在微信本地缓存里的登录 token。
+//
+// 上传文件时要手动把 token 放到 header 里，所以单独暴露这个小函数。
+function getToken() {
+  return wx.getStorageSync(TOKEN_STORAGE_KEY)
+}
+
+// uploadFile 是对 wx.uploadFile 的封装。
+//
+// wx.uploadFile 不会走 wx.request，所以这里也要自己补 Authorization。
+// 后端仍然返回统一的 { code, message, data }，这里会帮页面拆出 data。
+async function uploadFile(options) {
+  await ensureLogin()
+
+  const token = getToken()
+
+  return new Promise((resolve, reject) => {
+    wx.uploadFile({
+      url: `${API_BASE_URL}${options.url}`,
+      filePath: options.filePath,
+      name: options.name || 'file',
+      formData: options.formData || {},
+      header: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+      },
+      success(res) {
+        let body = {}
+
+        try {
+          body = JSON.parse(res.data || '{}')
+        } catch (err) {
+          reject({ message: '上传接口返回内容不是合法 JSON' })
+          return
+        }
+
+        if (res.statusCode >= 200 && res.statusCode < 300 && body.code === 0) {
+          resolve(body.data)
+          return
+        }
+
+        reject({
+          message: body.message || '上传失败',
+          code: body.code
+        })
+      },
+      fail(err) {
+        reject(err)
+      }
+    })
+  })
+}
+
 module.exports = {
   API_BASE_URL,
+  getToken,
   login,
-  request
+  request,
+  uploadFile
 }

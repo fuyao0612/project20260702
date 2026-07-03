@@ -93,7 +93,7 @@ type chatCompletionRequest struct {
 
 type chatMessage struct {
 	Role    string `json:"role"`
-	Content string `json:"content"`
+	Content any    `json:"content"`
 }
 
 type responseFormat struct {
@@ -102,19 +102,39 @@ type responseFormat struct {
 
 type chatCompletionResponse struct {
 	Choices []struct {
-		Message chatMessage `json:"message"`
+		Message chatCompletionResponseMessage `json:"message"`
 	} `json:"choices"`
 	Error *struct {
 		Message string `json:"message"`
 	} `json:"error,omitempty"`
 }
 
+type chatCompletionResponseMessage struct {
+	Role    string `json:"role"`
+	Content string `json:"content"`
+}
+
 type responsesRequest struct {
 	Model        string         `json:"model"`
 	Instructions string         `json:"instructions,omitempty"`
-	Input        string         `json:"input"`
+	Input        any            `json:"input"`
 	Temperature  float64        `json:"temperature,omitempty"`
 	Text         *responsesText `json:"text,omitempty"`
+}
+
+type multimodalContent struct {
+	Type     string `json:"type"`
+	Text     string `json:"text,omitempty"`
+	ImageURL any    `json:"image_url,omitempty"`
+}
+
+type chatImageURL struct {
+	URL string `json:"url"`
+}
+
+type responsesInputMessage struct {
+	Role    string              `json:"role"`
+	Content []multimodalContent `json:"content"`
 }
 
 type responsesText struct {
@@ -164,6 +184,38 @@ func (c *Client) GenerateTransactionDraft(text string, now time.Time, expenseCat
 	return draft, nil
 }
 
+// GenerateTransactionDraftFromImage 根据图片内容生成账单草稿。
+//
+// imageDataURL 是形如 data:image/jpeg;base64,xxxx 的字符串。
+// 这样后端不需要把图片暴露成公网 URL，也能把图片交给支持视觉能力的 AI 模型。
+func (c *Client) GenerateTransactionDraftFromImage(imageDataURL string, text string, now time.Time, expenseCategories []string, incomeCategories []string) (TransactionDraft, error) {
+	if c.apiKey == "" {
+		return TransactionDraft{}, errors.New("AI_API_KEY 未配置")
+	}
+
+	prompt := buildImageTransactionDraftPrompt(text, now, expenseCategories, incomeCategories)
+
+	var content string
+	var err error
+
+	switch c.protocol {
+	case "responses":
+		content, err = c.generateImageWithResponses(prompt, imageDataURL)
+	default:
+		content, err = c.generateImageWithChatCompletions(prompt, imageDataURL)
+	}
+	if err != nil {
+		return TransactionDraft{}, err
+	}
+
+	var draft TransactionDraft
+	if err := json.Unmarshal([]byte(content), &draft); err != nil {
+		return TransactionDraft{}, fmt.Errorf("AI 返回内容不是合法 JSON：%w", err)
+	}
+
+	return draft, nil
+}
+
 func (c *Client) generateWithChatCompletions(prompt string) (string, error) {
 	requestBody := chatCompletionRequest{
 		Model: c.model,
@@ -188,6 +240,19 @@ func (c *Client) generateWithChatCompletions(prompt string) (string, error) {
 		return "", err
 	}
 
+	return c.postChatCompletionsBytes(bodyBytes)
+}
+
+func (c *Client) postChatCompletions(requestBody chatCompletionRequest) (string, error) {
+	bodyBytes, err := json.Marshal(requestBody)
+	if err != nil {
+		return "", err
+	}
+
+	return c.postChatCompletionsBytes(bodyBytes)
+}
+
+func (c *Client) postChatCompletionsBytes(bodyBytes []byte) (string, error) {
 	req, err := http.NewRequest(http.MethodPost, c.baseURL+c.endpoint, bytes.NewReader(bodyBytes))
 	if err != nil {
 		return "", err
@@ -228,6 +293,39 @@ func (c *Client) generateWithChatCompletions(prompt string) (string, error) {
 	return content, nil
 }
 
+func (c *Client) generateImageWithChatCompletions(prompt string, imageDataURL string) (string, error) {
+	requestBody := chatCompletionRequest{
+		Model: c.model,
+		Messages: []chatMessage{
+			{
+				Role:    "system",
+				Content: "你是一个记账助手。你只能输出 JSON，不要输出 Markdown，不要解释。",
+			},
+			{
+				Role: "user",
+				Content: []multimodalContent{
+					{
+						Type: "text",
+						Text: prompt,
+					},
+					{
+						Type: "image_url",
+						ImageURL: chatImageURL{
+							URL: imageDataURL,
+						},
+					},
+				},
+			},
+		},
+		Temperature: 0.1,
+		ResponseFormat: responseFormat{
+			Type: "json_object",
+		},
+	}
+
+	return c.postChatCompletions(requestBody)
+}
+
 func (c *Client) generateWithResponses(prompt string) (string, error) {
 	requestBody := responsesRequest{
 		Model:        c.model,
@@ -246,6 +344,19 @@ func (c *Client) generateWithResponses(prompt string) (string, error) {
 		return "", err
 	}
 
+	return c.postResponsesBytes(bodyBytes)
+}
+
+func (c *Client) postResponses(requestBody responsesRequest) (string, error) {
+	bodyBytes, err := json.Marshal(requestBody)
+	if err != nil {
+		return "", err
+	}
+
+	return c.postResponsesBytes(bodyBytes)
+}
+
+func (c *Client) postResponsesBytes(bodyBytes []byte) (string, error) {
 	req, err := http.NewRequest(http.MethodPost, c.baseURL+c.endpoint, bytes.NewReader(bodyBytes))
 	if err != nil {
 		return "", err
@@ -284,6 +395,36 @@ func (c *Client) generateWithResponses(prompt string) (string, error) {
 	}
 
 	return content, nil
+}
+
+func (c *Client) generateImageWithResponses(prompt string, imageDataURL string) (string, error) {
+	requestBody := responsesRequest{
+		Model:        c.model,
+		Instructions: "你是一个记账助手。你只能输出 JSON，不要输出 Markdown，不要解释。",
+		Input: []responsesInputMessage{
+			{
+				Role: "user",
+				Content: []multimodalContent{
+					{
+						Type: "input_text",
+						Text: prompt,
+					},
+					{
+						Type:     "input_image",
+						ImageURL: imageDataURL,
+					},
+				},
+			},
+		},
+		Temperature: 0.1,
+		Text: &responsesText{
+			Format: responseFormat{
+				Type: "json_object",
+			},
+		},
+	}
+
+	return c.postResponses(requestBody)
 }
 
 // TestConnection 测试当前 AI 配置是否可以成功调用。
@@ -470,6 +611,44 @@ func buildTransactionDraftPrompt(text string, now time.Time, expenseCategories [
 6. note 尽量保留消费对象，例如 午饭、打车、买资料。`,
 		now.Format(time.RFC3339),
 		text,
+		strings.Join(expenseCategories, "、"),
+		strings.Join(incomeCategories, "、"),
+	)
+}
+
+func buildImageTransactionDraftPrompt(text string, now time.Time, expenseCategories []string, incomeCategories []string) string {
+	helperText := strings.TrimSpace(text)
+	if helperText == "" {
+		helperText = "用户没有提供额外说明，请优先根据图片内容判断。"
+	}
+
+	return fmt.Sprintf(`请从图片中识别一条记账草稿。图片可能是小票、支付截图、账单截图或消费凭证。
+
+当前时间：%s
+用户补充说明：%s
+
+支出分类只能从这些值里选择：%s
+收入分类只能从这些值里选择：%s
+
+请严格返回 JSON 对象，字段如下：
+{
+  "type": "expense 或 income",
+  "amount": 金额，整数，单位是分,
+  "category": "分类名称",
+  "note": "简短备注",
+  "happened_at": "RFC3339 时间，例如 2026-07-03T12:00:00+08:00"
+}
+
+规则：
+1. 支付截图、小票、购物订单通常是 expense；收款、退款、红包到账通常是 income。
+2. 优先识别图片里的实际支付金额，不要把优惠前金额当成最终金额。
+3. 如果图片里没有明确时间，使用当前时间。
+4. 如果图片里只有日期没有分钟，分钟使用当前时间的分钟。
+5. 金额必须转成分，例如 23 元返回 2300，18.5 元返回 1850。
+6. 分类必须从给定分类中选择，无法判断时使用“其他”。
+7. note 尽量写清消费对象或商户，例如 麦当劳、滴滴打车、超市购物。`,
+		now.Format(time.RFC3339),
+		helperText,
 		strings.Join(expenseCategories, "、"),
 		strings.Join(incomeCategories, "、"),
 	)

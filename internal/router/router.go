@@ -35,6 +35,7 @@ func New(db *gorm.DB, cfg config.Config) *gin.Engine {
 	categoryHandler := handler.NewCategoryHandler(db)
 	transactionHandler := handler.NewTransactionHandler(db)
 	statisticsHandler := handler.NewStatisticsHandler(db)
+	uploadHandler := handler.NewUploadHandler()
 
 	// /api 这一组路由是给小程序或前端调用的业务接口。
 	api := r.Group("/api")
@@ -70,6 +71,10 @@ func New(db *gorm.DB, cfg config.Config) *gin.Engine {
 
 		// 根据自然语言生成账单草稿。
 		protected.POST("/ai/transaction-draft", aiHandler.TransactionDraft)
+
+		// 上传图片，并根据图片内容生成账单草稿。
+		protected.POST("/uploads/images", uploadHandler.Image)
+		protected.POST("/ai/image-transaction-draft", aiHandler.ImageTransactionDraft)
 
 		// 查询、保存、测试当前用户的 AI API 配置。
 		protected.GET("/ai/settings", aiHandler.GetSetting)

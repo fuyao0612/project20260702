@@ -25,6 +25,9 @@ Thumbs.db
 *.tmp
 *.bak
 
+# User uploaded files
+uploads/
+
 # 微信开发者工具本地缓存
 miniprogram/.idea/
 miniprogram/.settings/

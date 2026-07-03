@@ -1,4 +1,4 @@
-const { request } = require('../../utils/api')
+const { request, uploadFile } = require('../../utils/api')
 
 function centToYuan(amount) {
   return (amount / 100).toFixed(2)
@@ -30,6 +30,7 @@ Page({
   data: {
     text: '',
     generating: false,
+    imageGenerating: false,
     saving: false,
     draftReady: false,
     categories: [],
@@ -99,19 +100,7 @@ Page({
         data: { text }
       })
 
-      await this.loadCategories(draft.type, draft.category)
-
-      this.setData({
-        draftReady: true,
-        form: {
-          type: draft.type,
-          amountYuan: centToYuan(draft.amount),
-          category: this.data.form.category,
-          note: draft.note || '',
-          date: formatDateForPicker(draft.happened_at),
-          time: formatTimeForPicker(draft.happened_at)
-        }
-      })
+      await this.applyDraft(draft)
     } catch (err) {
       wx.showToast({
         title: err.message || '生成失败',
@@ -120,6 +109,77 @@ Page({
     } finally {
       this.setData({ generating: false })
     }
+  },
+
+  async chooseImageAndGenerateDraft() {
+    if (this.data.imageGenerating) {
+      return
+    }
+
+    try {
+      const media = await new Promise((resolve, reject) => {
+        wx.chooseMedia({
+          count: 1,
+          mediaType: ['image'],
+          sourceType: ['album', 'camera'],
+          success: resolve,
+          fail: reject
+        })
+      })
+
+      const filePath = media.tempFiles && media.tempFiles[0] ? media.tempFiles[0].tempFilePath : ''
+      if (!filePath) {
+        wx.showToast({
+          title: '没有选择图片',
+          icon: 'none'
+        })
+        return
+      }
+
+      this.setData({ imageGenerating: true })
+
+      // 第一步：把图片上传到 Go 后端，后端会保存到 uploads/images 目录。
+      const uploadResult = await uploadFile({
+        url: '/api/uploads/images',
+        filePath,
+        name: 'file'
+      })
+
+      // 第二步：把后端返回的图片路径交给 AI 识别接口，生成账单草稿。
+      const draft = await request({
+        url: '/api/ai/image-transaction-draft',
+        method: 'POST',
+        data: {
+          image_path: uploadResult.path,
+          text: this.data.text.trim()
+        }
+      })
+
+      await this.applyDraft(draft)
+    } catch (err) {
+      wx.showToast({
+        title: err.message || '图片识别失败',
+        icon: 'none'
+      })
+    } finally {
+      this.setData({ imageGenerating: false })
+    }
+  },
+
+  async applyDraft(draft) {
+    await this.loadCategories(draft.type, draft.category)
+
+    this.setData({
+      draftReady: true,
+      form: {
+        type: draft.type,
+        amountYuan: centToYuan(draft.amount),
+        category: this.data.form.category,
+        note: draft.note || '',
+        date: formatDateForPicker(draft.happened_at),
+        time: formatTimeForPicker(draft.happened_at)
+      }
+    })
   },
 
   chooseType(event) {
