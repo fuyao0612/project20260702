@@ -58,6 +58,13 @@ Page({
     })
   },
 
+  // 跳转到统计页。
+  goStatistics() {
+    wx.navigateTo({
+      url: '/pages/statistics/statistics'
+    })
+  },
+
   // 跳转到账单详情页。
   // 首页列表项上通过 data-id 保存账单 id，这里从 event.currentTarget.dataset 取出来。
   goDetail(event) {

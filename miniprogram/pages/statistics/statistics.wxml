@@ -1,0 +1,41 @@
+<view class="page">
+  <view class="month-card">
+    <view class="label">月份</view>
+    <picker mode="date" fields="month" value="{{month}}" bindchange="onMonthChange">
+      <view class="month-picker">{{month}}</view>
+    </picker>
+  </view>
+
+  <view class="summary-grid">
+    <view class="summary-item">
+      <view class="summary-label">收入</view>
+      <view class="summary-value income">¥{{incomeTotalText}}</view>
+    </view>
+    <view class="summary-item">
+      <view class="summary-label">支出</view>
+      <view class="summary-value expense">¥{{expenseTotalText}}</view>
+    </view>
+    <view class="summary-item full">
+      <view class="summary-label">结余</view>
+      <view class="summary-value {{balanceClass}}">¥{{balanceText}}</view>
+    </view>
+  </view>
+
+  <view class="section-title">分类支出排行</view>
+
+  <view wx:if="{{loading}}" class="state-text">加载中...</view>
+  <view wx:elif="{{categoryItems.length === 0}}" class="state-text">暂无支出</view>
+
+  <view wx:else class="category-list">
+    <view wx:for="{{categoryItems}}" wx:key="category" class="category-item">
+      <view class="category-row">
+        <view class="category-name">{{item.category}}</view>
+        <view class="category-amount">¥{{item.amountText}}</view>
+      </view>
+      <view class="bar-track">
+        <view class="bar-fill" style="width: {{item.percent}}%;"></view>
+      </view>
+      <view class="category-percent">{{item.percentText}}</view>
+    </view>
+  </view>
+</view>

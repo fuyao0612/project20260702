@@ -27,6 +27,9 @@ Page({
     loading: true,
     submitting: false,
     deleting: false,
+    categories: [],
+    categoryNames: [],
+    categoryIndex: 0,
     form: {
       type: 'expense',
       amountYuan: '',
@@ -62,6 +65,8 @@ Page({
         url: `/api/transactions/${this.data.id}`
       })
 
+      await this.loadCategories(transaction.type, transaction.category)
+
       this.setData({
         form: {
           type: transaction.type,
@@ -81,10 +86,38 @@ Page({
     }
   },
 
-  chooseType(event) {
-    this.setData({
-      'form.type': event.currentTarget.dataset.type
+  // loadCategories 按账单类型加载分类。
+  // selectedCategoryName 用于详情页初次加载时定位当前账单的分类。
+  async loadCategories(type, selectedCategoryName = '') {
+    const categories = await request({
+      url: `/api/categories?type=${type}`
     })
+
+    const categoryNames = categories.map((item) => item.name)
+    let categoryIndex = categories.findIndex((item) => item.name === selectedCategoryName)
+
+    if (categoryIndex < 0) {
+      categoryIndex = 0
+    }
+
+    const selectedCategory = categories[categoryIndex]
+
+    this.setData({
+      categories,
+      categoryNames,
+      categoryIndex,
+      'form.category': selectedCategory ? selectedCategory.name : ''
+    })
+  },
+
+  chooseType(event) {
+    const type = event.currentTarget.dataset.type
+
+    this.setData({
+      'form.type': type
+    })
+
+    this.loadCategories(type)
   },
 
   onAmountInput(event) {
@@ -93,9 +126,13 @@ Page({
     })
   },
 
-  onCategoryInput(event) {
+  onCategoryChange(event) {
+    const categoryIndex = Number(event.detail.value)
+    const category = this.data.categories[categoryIndex]
+
     this.setData({
-      'form.category': event.detail.value
+      categoryIndex,
+      'form.category': category ? category.name : ''
     })
   },
 

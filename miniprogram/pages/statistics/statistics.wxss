@@ -1,0 +1,115 @@
+.month-card {
+  padding: 24rpx;
+  border-radius: 8rpx;
+  background: #ffffff;
+}
+
+.label,
+.summary-label {
+  margin-bottom: 12rpx;
+  color: #6b7280;
+  font-size: 24rpx;
+}
+
+.month-picker {
+  height: 76rpx;
+  line-height: 76rpx;
+  padding: 0 20rpx;
+  border-radius: 8rpx;
+  background: #f5f7f6;
+  font-size: 30rpx;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16rpx;
+  margin-top: 24rpx;
+}
+
+.summary-item {
+  padding: 28rpx;
+  border-radius: 8rpx;
+  background: #ffffff;
+}
+
+.summary-item.full {
+  grid-column: 1 / -1;
+}
+
+.summary-value {
+  font-size: 40rpx;
+  font-weight: 700;
+}
+
+.summary-value.income,
+.summary-value.positive {
+  color: #1f6f5b;
+}
+
+.summary-value.expense,
+.summary-value.negative {
+  color: #d14343;
+}
+
+.section-title {
+  margin: 36rpx 0 16rpx;
+  font-size: 30rpx;
+  font-weight: 700;
+}
+
+.state-text {
+  padding: 56rpx 0;
+  color: #6b7280;
+  text-align: center;
+  font-size: 28rpx;
+}
+
+.category-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.category-item {
+  padding: 24rpx;
+  border-radius: 8rpx;
+  background: #ffffff;
+}
+
+.category-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 24rpx;
+}
+
+.category-name {
+  font-size: 30rpx;
+  font-weight: 600;
+}
+
+.category-amount {
+  color: #d14343;
+  font-size: 30rpx;
+  font-weight: 700;
+}
+
+.bar-track {
+  height: 12rpx;
+  margin-top: 18rpx;
+  border-radius: 999rpx;
+  background: #eef2f1;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  border-radius: 999rpx;
+  background: #1f6f5b;
+}
+
+.category-percent {
+  margin-top: 10rpx;
+  color: #6b7280;
+  font-size: 22rpx;
+}

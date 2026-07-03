@@ -31,6 +31,7 @@ func New(db *gorm.DB, cfg config.Config) *gin.Engine {
 	})
 
 	authHandler := handler.NewAuthHandler(db, cfg.JWTSecret, cfg.WeChat)
+	categoryHandler := handler.NewCategoryHandler(db)
 	transactionHandler := handler.NewTransactionHandler(db)
 	statisticsHandler := handler.NewStatisticsHandler(db)
 
@@ -47,6 +48,9 @@ func New(db *gorm.DB, cfg config.Config) *gin.Engine {
 
 		// 查询账单列表。
 		protected.GET("/transactions", transactionHandler.List)
+
+		// 查询分类列表。
+		protected.GET("/categories", categoryHandler.List)
 
 		// 新增一条账单。
 		protected.POST("/transactions", transactionHandler.Create)

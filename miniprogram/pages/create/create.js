@@ -21,6 +21,9 @@ Page({
   // form 保存用户正在填写的表单内容。
   data: {
     submitting: false,
+    categories: [],
+    categoryNames: [],
+    categoryIndex: 0,
     form: {
       type: 'expense',
       amountYuan: '',
@@ -30,11 +33,44 @@ Page({
     }
   },
 
+  onLoad() {
+    this.loadCategories('expense')
+  },
+
+  // loadCategories 按收入/支出类型加载分类。
+  // 后端返回分类对象，页面 picker 只需要显示名称，所以这里额外生成 categoryNames。
+  async loadCategories(type) {
+    try {
+      const categories = await request({
+        url: `/api/categories?type=${type}`
+      })
+
+      const categoryNames = categories.map((item) => item.name)
+      const firstCategory = categoryNames[0] || ''
+
+      this.setData({
+        categories,
+        categoryNames,
+        categoryIndex: 0,
+        'form.category': firstCategory
+      })
+    } catch (err) {
+      wx.showToast({
+        title: err.message || '分类加载失败',
+        icon: 'none'
+      })
+    }
+  },
+
   // chooseType 根据用户点击的分段按钮，切换支出/收入。
   chooseType(event) {
+    const type = event.currentTarget.dataset.type
+
     this.setData({
-      'form.type': event.currentTarget.dataset.type
+      'form.type': type
     })
+
+    this.loadCategories(type)
   },
 
   // 金额输入框变化时，把最新输入值同步到 form.amountYuan。
@@ -44,10 +80,14 @@ Page({
     })
   },
 
-  // 分类输入框变化时，把最新输入值同步到 form.category。
-  onCategoryInput(event) {
+  // 分类选择器变化时，把选中的分类名称同步到 form.category。
+  onCategoryChange(event) {
+    const categoryIndex = Number(event.detail.value)
+    const category = this.data.categories[categoryIndex]
+
     this.setData({
-      'form.category': event.detail.value
+      categoryIndex,
+      'form.category': category ? category.name : ''
     })
   },
 

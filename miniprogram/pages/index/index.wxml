@@ -11,6 +11,7 @@
   </view>
 
   <button class="primary-button add-button" bindtap="goCreate">记一笔</button>
+  <button class="secondary-button" bindtap="goStatistics">查看统计</button>
 
   <view class="section-title">最近账单</view>
 

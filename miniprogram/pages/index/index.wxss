@@ -34,6 +34,16 @@
   margin-top: 24rpx;
 }
 
+.secondary-button {
+  margin-top: 16rpx;
+  height: 88rpx;
+  line-height: 88rpx;
+  border-radius: 8rpx;
+  background: #ffffff;
+  color: #1f6f5b;
+  font-size: 30rpx;
+}
+
 .section-title {
   margin: 36rpx 0 16rpx;
   font-size: 30rpx;

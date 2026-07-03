@@ -15,7 +15,9 @@
 
     <view class="field">
       <view class="label">分类</view>
-      <input class="input" placeholder="例如 餐饮、交通、工资" value="{{form.category}}" bindinput="onCategoryInput" />
+      <picker mode="selector" range="{{categoryNames}}" value="{{categoryIndex}}" bindchange="onCategoryChange">
+        <view class="picker">{{form.category || '请选择分类'}}</view>
+      </picker>
     </view>
 
     <view class="field">
